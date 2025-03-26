@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QZ Excel Lookup</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        /* [Keep all the CSS from previous version] */
+        :root { --primary: #6366f1; --primary-dark: #4f46e5; /* ... */ }
+        body { font-family: 'Inter', -apple-system, sans-serif; /* ... */ }
+        /* [Include all other CSS rules from earlier] */
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="header">
+            <h1>Excel Code Lookup</h1>
+            <div class="byline">Created by QZ</div>
+        </div>
+        
+        <div class="content">
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Enter Code Here">
+                <div class="search-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </div>
+            </div>
+            
+            <div id="result"></div>
+        </div>
+    </div>
+
+    <script>
+        // Embedded Excel data (A1:B3 example)
+        const embeddedData = [
+            ["Code", "Description"],
+            ["ZA", "A Name"],
+            ["123", "Cheese"]
+        ];
+
+        // Convert to worksheet and load
+        const ws = XLSX.utils.aoa_to_sheet(embeddedData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Data");
+        
+        // Process the data
+        const dataMap = new Map();
+        const jsonData = XLSX.utils.sheet_to_json(ws, { header: ['A', 'B'] });
+        
+        for (let i = 1; i < jsonData.length; i++) {
+            const row = jsonData[i];
+            if (row.A && row.B) {
+                dataMap.set(row.A.toString().trim().toLowerCase(), row.B);
+            }
+        }
+
+        // Enable search
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchText = e.target.value.trim().toLowerCase();
+            const resultDiv = document.getElementById('result');
+            
+            if (!searchText) {
+                resultDiv.style.display = 'none';
+                return;
+            }
+            
+            if (dataMap.has(searchText)) {
+                resultDiv.textContent = dataMap.get(searchText);
+                resultDiv.style.display = 'block';
+                resultDiv.style.backgroundColor = '#f0fdf4';
+                resultDiv.style.color = '#166534';
+            } else {
+                resultDiv.textContent = "No match found";
+                resultDiv.style.display = 'block';
+                resultDiv.style.backgroundColor = '#fff1f2';
+                resultDiv.style.color = '#9f1239';
+            }
+        });
+    </script>
+</body>
+</html>
