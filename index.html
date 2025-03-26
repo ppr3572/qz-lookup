@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QZ Auto-Lookup</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --text: #1e293b;
+            --light: #f8fafc;
+            --gray: #94a3b8;
+            --success: #10b981;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f1f5f9;
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 480px;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 24px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.5rem;
+            letter-spacing: -0.025em;
+        }
+        
+        .header .byline {
+            opacity: 0.8;
+            font-size: 0.875rem;
+            margin-top: 4px;
+        }
+        
+        .content {
+            padding: 24px;
+        }
+        
+        .search-container {
+            position: relative;
+            margin-top: 16px;
+        }
+        
+        #searchInput {
+            width: 100%;
+            padding: 16px 48px 16px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 0.9375rem;
+            box-sizing: border-box;
+            transition: all 0.2s;
+            background-color: var(--light);
+        }
+        
+        #searchInput:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+        
+        #searchInput::placeholder {
+            color: var(--gray);
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+        
+        #result {
+            margin-top: 16px;
+            padding: 20px;
+            background: #f0fdf4;
+            border-radius: 12px;
+            font-size: 1rem;
+            min-height: 60px;
+            display: none;
+            border: 1px solid #dcfce7;
+            color: #166534;
+        }
+        
+        #status {
+            margin-top: 12px;
+            font-size: 0.8125rem;
+            color: var(--gray);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="header">
+            <h1>QZ Auto-Lookup</h1>
+            <div class="byline">Created by QZ</div>
+        </div>
+        
+        <div class="content">
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Enter Code Here">
+                <div class="search-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </div>
+            </div>
+            
+            <div id="result"></div>
+            <div id="status">Loading data...</div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration - Change these to match your file
+        const EXCEL_FILENAME = "data.xlsx"; // Must match your uploaded file name exactly
+        const KEY_COLUMN = "A"; // Column with search codes
+        const VALUE_COLUMN = "B"; // Column with results
+        
+        // Auto-load the Excel file on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            const statusEl = document.getElementById('status');
+            
+            try {
+                // Fetch the Excel file from the same directory
+                const response = await fetch(EXCEL_FILENAME);
+                if (!response.ok) throw new Error("File not found");
+                
+                const arrayBuffer = await response.arrayBuffer();
+                const data = new Uint8Array(arrayBuffer);
+                const workbook = XLSX.read(data, { type: 'array' });
+                
+                // Get the first worksheet
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                
+                // Convert to JSON with specified columns
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { 
+                    header: [KEY_COLUMN, VALUE_COLUMN],
+                    range: 1 // Skip header row
+                });
+                
+                // Create mapping
+                const dataMap = new Map();
+                jsonData.forEach(row => {
+                    if (row[KEY_COLUMN] && row[VALUE_COLUMN]) {
+                        dataMap.set(
+                            row[KEY_COLUMN].toString().trim().toLowerCase(), 
+                            row[VALUE_COLUMN]
+                        );
+                    }
+                });
+                
+                // Enable search
+                document.getElementById('searchInput').addEventListener('input', function(e) {
+                    const searchText = e.target.value.trim().toLowerCase();
+                    const resultDiv = document.getElementById('result');
+                    
+                    if (!searchText) {
+                        resultDiv.style.display = 'none';
+                        return;
+                    }
+                    
+                    if (dataMap.has(searchText)) {
+                        resultDiv.textContent = dataMap.get(searchText);
+                        resultDiv.style.display = 'block';
+                        resultDiv.style.backgroundColor = '#f0fdf4';
+                        resultDiv.style.color = '#166534';
+                    } else {
+                        resultDiv.textContent = "No match found";
+                        resultDiv.style.display = 'block';
+                        resultDiv.style.backgroundColor = '#fff1f2';
+                        resultDiv.style.color = '#9f1239';
+                    }
+                });
+                
+                statusEl.textContent = `Ready (${dataMap.size} codes loaded)`;
+                document.getElementById('searchInput').disabled = false;
+                document.getElementById('searchInput').focus();
+                
+            } catch (error) {
+                statusEl.textContent = `Error: ${error.message}`;
+                statusEl.style.color = '#ef4444';
+                console.error("Loading failed:", error);
+            }
+        });
+    </script>
+</body>
+</html>
