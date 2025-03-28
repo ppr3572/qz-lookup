@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeVault Pro</title>
+    <style>
+        :root {
+            --primary: #7c3aed;
+            --primary-dark: #6d28d9;
+            --text: #1e293b;
+            --light: #f8fafc;
+            --gray: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f1f5f9;
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+            width: 100%;
+            max-width: 500px;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 28px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::after {
+            content: "";
+            position: absolute;
+            bottom: -50px;
+            right: -50px;
+            width: 100px;
+            height: 100px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+        
+        .header::before {
+            content: "";
+            position: absolute;
+            top: -30px;
+            left: -30px;
+            width: 80px;
+            height: 80px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 1.8rem;
+            letter-spacing: -0.025em;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .header .byline {
+            opacity: 0.9;
+            font-size: 0.9375rem;
+            margin-top: 8px;
+            position: relative;
+            z-index: 1;
+            font-weight: 400;
+        }
+        
+        .content {
+            padding: 24px;
+        }
+        
+        .input-group {
+            margin-bottom: 16px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.9375rem;
+            box-sizing: border-box;
+            transition: all 0.2s;
+            background-color: var(--light);
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+        
+        button {
+            background: var(--primary);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            width: 100%;
+        }
+        
+        button:hover {
+            background: var(--primary-dark);
+        }
+        
+        #result {
+            margin-top: 16px;
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 1rem;
+            min-height: 60px;
+            display: none;
+        }
+        
+        .success {
+            background: #f0fdf4;
+            border: 1px solid #dcfce7;
+            color: #166534;
+        }
+        
+        .error {
+            background: #fff1f2;
+            border: 1px solid #ffe4e6;
+            color: #9f1239;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="header">
+            <h1>CodeVault Pro</h1>
+            <div class="byline">Created by QZ</div>
+        </div>
+        
+        <div class="content">
+            <div class="input-group">
+                <label for="searchInput">Enter Code</label>
+                <input type="text" id="searchInput" placeholder="Enter Code Here">
+            </div>
+            
+            <button onclick="searchCode()">Search</button>
+            
+            <div id="result"></div>
+        </div>
+    </div>
+
+    <script>
+        // =============================================
+        // EDIT THESE CODE/VALUE PAIRS AS NEEDED
+        // Format: ["code", "value"]
+        const codeData = [
+            ["123", "Cheese"],
+            ["za", "A Name"],
+            ["kar", "Eid 5 Hazar sabko phupi shamim, Tanzila, Mehnaz aur Baji Samina Total:20000 baqi apkay hongay 30000 total 50000 send hongay"],
+            ["789", "Bread"]
+        ];
+        // =============================================
+        
+        // Convert array to Map for easy lookup
+        const codeMap = new Map(codeData);
+        
+        function searchCode() {
+            const searchText = document.getElementById('searchInput').value.trim().toLowerCase();
+            const resultDiv = document.getElementById('result');
+            
+            if (!searchText) {
+                showResult('Please enter a code to search', 'error');
+                return;
+            }
+            
+            if (codeMap.has(searchText)) {
+                showResult(`<strong>Result:</strong> ${codeMap.get(searchText)}`, 'success');
+            } else {
+                showResult('No match found for this code', 'error');
+            }
+        }
+        
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = message;
+            resultDiv.className = type;
+            resultDiv.style.display = 'block';
+        }
+        
+        // Enable Enter key for search
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchCode();
+            }
+        });
+    </script>
+</body>
+</html>
